@@ -11,5 +11,7 @@ data class Messages(
     val id: Long,
     val date: String,
     val subject: String,
-    val form: String
+    val form: String,
+    val attachmentId:String,
+    val messageId:String
 )

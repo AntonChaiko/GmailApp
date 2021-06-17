@@ -4,20 +4,39 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.provider.UserDictionary
+import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.RemoteViewsService
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gmailclientappn27.R
 import com.example.gmailclientappn27.UserMessagesModelClass
 import com.example.gmailclientappn27.database.Messages
-import com.example.gmailclientappn27.database.MessagesViewModel
 import com.example.gmailclientappn27.databinding.RecyclerViewLayoutBinding
+import com.example.gmailclientappn27.fragments.messagesfragment.MessagesFragment
+import com.example.gmailclientappn27.fragments.messagesfragment.MessagesFragmentViewModel
+import com.google.api.services.gmail.Gmail
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.apache.commons.codec.binary.Base64
+import java.io.File
+import java.io.FileOutputStream
 
-class MessageFragmentAdapter(private val list: List<Messages>?, private val context: Context) :
+class MessageFragmentAdapter(
+    private val list: List<Messages>?,
+    private val context: Context,
+    private val service: Gmail,
+    private val mMessagesFragmentViewModel: MessagesFragmentViewModel
+) :
     RecyclerView.Adapter<MessageFragmentAdapter.MessageAdapterViewHolder>() {
 
     class MessageAdapterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -26,12 +45,13 @@ class MessageFragmentAdapter(private val list: List<Messages>?, private val cont
         var fromTextView: TextView? = null
         var subjectTextView: TextView? = null
         var dateTextView: TextView? = null
+        var attachImageView: ImageView? = null
 
         init {
             fromTextView = binding.fromFieldTextView
             subjectTextView = binding.subjectFieldTextView
             dateTextView = binding.dateFieldTextView
-
+            attachImageView = binding.attachImageView
         }
     }
 
@@ -44,12 +64,22 @@ class MessageFragmentAdapter(private val list: List<Messages>?, private val cont
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onBindViewHolder(holder: MessageAdapterViewHolder, position: Int) {
 
-        when (isOnline(context)){
+        when (isOnline(context)) {
             true -> {
                 val currentMessage = UserMessagesModelClass.dataObject[position]
                 holder.dateTextView?.text = currentMessage.date
                 holder.subjectTextView?.text = currentMessage.subject
                 holder.fromTextView?.text = currentMessage.from
+                if (currentMessage.attachmentId != "") {
+                    holder.attachImageView?.visibility = View.VISIBLE
+                    holder.attachImageView?.setOnClickListener {
+                        Toast.makeText(context, currentMessage.attachmentId, Toast.LENGTH_LONG)
+                            .show()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            mMessagesFragmentViewModel.getData(service,currentMessage.messageId,currentMessage.attachmentId)
+                        }
+                    }
+                }
             }
             false -> {
                 val currentMessage = list?.get(position)
@@ -61,8 +91,8 @@ class MessageFragmentAdapter(private val list: List<Messages>?, private val cont
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    override fun getItemCount(): Int  {
-       return when(isOnline(context)) {
+    override fun getItemCount(): Int {
+        return when (isOnline(context)) {
             true -> UserMessagesModelClass.dataObject.size
             false -> list?.size!!
         }

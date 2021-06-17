@@ -24,8 +24,6 @@ class MessagesViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-
-
     fun deleteAllMessages() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteAllMessages()
