@@ -1,9 +1,17 @@
 package com.example.gmailclientappn27.fragments.messagesfragment
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.util.Log
 import android.view.View
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -18,6 +26,7 @@ import com.example.gmailclientappn27.databinding.FragmentMessagesBinding
 import com.example.gmailclientappn27.fragments.basefragment.BaseFragment
 import com.example.gmailclientappn27.fragments.loginfragment.RQ_FIREBASE_AUTH
 import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.data.model.User
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
@@ -26,10 +35,6 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.apache.commons.codec.binary.Base64
-import java.io.File
-import java.io.FileOutputStream
 
 
 class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
@@ -39,13 +44,15 @@ class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
 
     lateinit var credential: GoogleAccountCredential
     lateinit var service: Gmail
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
+        super.onViewCreated(view, savedInstanceState)
+        checkPermissions()
         mMessagesFragmentViewModel =
             ViewModelProvider(this).get(MessagesFragmentViewModel::class.java)
         mMessageViewModel = ViewModelProvider(this).get(MessagesViewModel::class.java)
-        mMessageViewModel.deleteAllMessages()
+
         connectAuthenticate()
         credential = mMessagesFragmentViewModel.getCredential(requireActivity())
         service = mMessagesFragmentViewModel.getService(credential)
@@ -57,16 +64,23 @@ class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
 
         val d: List<Messages>? = messagesDatabase.messagesDao()?.getAllMessages()
 
-        val adapter = MessageFragmentAdapter(d, requireContext(),service,mMessagesFragmentViewModel)
+        val adapter =
+            MessageFragmentAdapter(d, requireContext(), service, mMessagesFragmentViewModel)
+        if(isOnline(requireContext())){
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.loadingCardView.visibility = View.VISIBLE
+                mMessagesFragmentViewModel.readEmail(
+                    service = service,
+                    mMessagesViewModel = mMessageViewModel
+                )
+                adapter.notifyDataSetChanged()
+                binding.loadingCardView.visibility = View.GONE
 
-        CoroutineScope(Dispatchers.Main).launch {
-
-            mMessagesFragmentViewModel.readEmail(
-                service,
-                mMessagesViewModel = mMessageViewModel
-            )
-            adapter.notifyDataSetChanged()
+            }
+        } else{
+            Toast.makeText(requireContext(),"no internet",Toast.LENGTH_LONG).show()
         }
+
         binding.messagesRecyclerView.adapter = adapter
         binding.messagesRecyclerView.addItemDecoration(
             DividerItemDecoration(
@@ -76,16 +90,26 @@ class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         )
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
         binding.exitButton.setOnClickListener {
+            val sharedPreferences =
+                requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+            val editor = sharedPreferences?.edit()
+            editor?.apply {
+                putBoolean("BOOLEAN_KEY", false)
+            }?.apply()
             UserMessagesModelClass.dataObject.clear()
             mMessageViewModel.deleteAllMessages()
             FirebaseAuth.getInstance().signOut()
             val googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
             googleSignInClient.signOut()
+            mMessageViewModel.deleteAllMessages()
             findNavController().navigate(R.id.action_messagesFragment_to_loginFragment)
         }
-
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        UserMessagesModelClass.dataObject.clear()
+    }
     override fun getFragmentView(): Int {
         return R.layout.fragment_messages
     }
@@ -106,33 +130,38 @@ class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         }
     }
 
-    suspend fun getData(id: String, attachId: String): String? {
-        val dataResult = withContext(Dispatchers.IO) {
-            service.users().messages().attachments()
-                ?.get(
-                    FirebaseAuth.getInstance().currentUser?.email,
-                    id, attachId
-                )?.execute()
-        }
+    private fun checkPermissions() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
 
-        CoroutineScope(Dispatchers.IO).launch {
-            Log.w("asd", "saveAttachmentsAsync start")
-            val data = Base64.decodeBase64(dataResult?.data)
-            val file = File(
-                "${
-                    Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    )
-                }/${dataResult?.data}"
+                ),
+                1
             )
-
-            file.createNewFile()
-            val fOut = FileOutputStream(file)
-            fOut.write(data)
-            fOut.close()
-
-            Log.w("asd", "saveAttachmentsAsync end")
         }
-        return dataResult?.data
     }
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (connectivityManager != null) {
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+
 }

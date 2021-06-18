@@ -5,7 +5,8 @@ data class UserMessagesModel(
     val from: String,
     val subject: String,
     val attachmentId:String,
-    val messageId:String
+    val messageId:String,
+    val filename: String
 
 )
 

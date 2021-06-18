@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+>
 
     <data>
 
@@ -14,37 +14,30 @@
 
         <TextView
             android:id="@+id/from_field_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SADSADSA"
+            style="@style/TextViewStyle"
+            app:layout_constraintEnd_toStartOf="@+id/attach_image_view"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="MissingConstraints" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/subject_field_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="SADSADSA"
+            style="@style/TextViewStyle"
+            app:layout_constraintEnd_toEndOf="@+id/from_field_text_view"
             app:layout_constraintStart_toStartOf="@+id/from_field_text_view"
-            app:layout_constraintTop_toBottomOf="@+id/from_field_text_view"
-            tools:ignore="MissingConstraints" />
+            app:layout_constraintTop_toBottomOf="@+id/from_field_text_view" />
 
         <TextView
             android:id="@+id/date_field_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="SADSADSA"
+            style="@style/TextViewStyle"
+            app:layout_constraintEnd_toEndOf="@+id/from_field_text_view"
             app:layout_constraintStart_toStartOf="@+id/from_field_text_view"
             app:layout_constraintTop_toBottomOf="@+id/subject_field_text_view" />
 
         <ImageView
             android:id="@+id/attach_image_view"
-            android:src="@drawable/ic_attach_file"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_attach_file"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

@@ -1,11 +1,15 @@
 package com.example.gmailclientappn27.fragments.loginfragment
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -20,9 +24,9 @@ import com.google.android.gms.common.api.ApiException
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.services.gmail.Gmail
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.*
+import kotlin.math.sign
 
 
 private const val TAG = "LoginFragment"
@@ -36,6 +40,7 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>() {
     private lateinit var mLoginFragmentViewModel: LoginFragmentViewModel
 
 
+    @SuppressLint("CommitPrefEdits")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         auth = FirebaseAuth.getInstance()
@@ -49,23 +54,34 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>() {
         connectAuthenticate()
 
         binding.signInButton.setOnClickListener {
-            signIn()
+           signIn()
+            Toast.makeText(requireContext(),"You logged as ${auth.currentUser?.email}",Toast.LENGTH_LONG).show()
         }
         binding.loginButton.setOnClickListener {
+            val sharedPreferences =
+                requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+            val editor = sharedPreferences?.edit()
+            editor?.apply {
+                putBoolean("BOOLEAN_KEY", binding.rememberSwitch.isChecked)
+            }?.apply()
             findNavController().navigate(R.id.action_loginFragment_to_messagesFragment)
         }
     }
 
     override fun onStart() {
         super.onStart()
-        if (auth.currentUser != null) {
+       val sharedPreferences = requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        val savedBoolean = sharedPreferences?.getBoolean("BOOLEAN_KEY", false)
+        if(savedBoolean == true){
             findNavController().navigate(R.id.action_loginFragment_to_messagesFragment)
         }
+
     }
 
     private fun signIn() {
         val signInIntent = mGoogleSignInClient.signInIntent;
         startActivityForResult(signInIntent, RC_SIGN_IN)
+
     }
 
 
@@ -97,6 +113,7 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>() {
             }
         }
     }
+
 
     override fun getFragmentView(): Int {
         return R.layout.fragment_login

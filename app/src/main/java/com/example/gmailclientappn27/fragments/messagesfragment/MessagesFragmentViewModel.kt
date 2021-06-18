@@ -1,8 +1,6 @@
 package com.example.gmailclientappn27.fragments.messagesfragment
 
-import android.net.wifi.hotspot2.pps.Credential
 import android.os.Environment
-import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import com.example.gmailclientappn27.UserMessagesModel
@@ -27,7 +25,6 @@ import java.io.File
 import java.io.FileOutputStream
 
 class MessagesFragmentViewModel : ViewModel() {
-var filename = ""
     fun getService(credential: GoogleAccountCredential): Gmail {
         return Gmail.Builder(
             NetHttpTransport(), AndroidJsonFactory.getDefaultInstance(), credential
@@ -49,8 +46,8 @@ var filename = ""
             val executeResult = getResultContent(service)
 
             val message = executeResult?.messages
-
             var index = 0
+            mMessagesViewModel.deleteAllMessages()
             while (index < message?.size!!) {
                 val messageRead = withContext(Dispatchers.IO) {
                     service.users().messages()
@@ -65,12 +62,13 @@ var filename = ""
 
                 val headers = messageRead.payload.headers
                 val body = messageRead.payload.parts
+                var filename = ""
                 var date = ""
                 var from = ""
                 var subject = ""
                 var attachmentId = ""
                 body.forEach {
-                    if (!it.body.attachmentId.isNullOrEmpty()) {
+                    if (!it.body.attachmentId.isNullOrEmpty() && !it.filename.isNullOrEmpty()) {
                         attachmentId = it.body.attachmentId
                         filename = it.filename
                     }
@@ -82,7 +80,7 @@ var filename = ""
                         "From" -> from = it.value
                     }
                 }
-                writeData(from, date, subject, attachmentId, id)
+                writeData(from, date, subject, attachmentId, id, filename)
 
                 if (index < message.size) {
                     mMessagesViewModel.addMessage(
@@ -104,7 +102,7 @@ var filename = ""
 
     }
 
-    suspend fun getData(service: Gmail, id: String, attachId: String): String? {
+    suspend fun getData(service: Gmail, id: String, attachId: String, filename:String): String? {
         val dataResult = withContext(Dispatchers.IO) {
             service.users().messages().attachments()
                 ?.get(
@@ -114,7 +112,6 @@ var filename = ""
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            Log.w("asd", "saveAttachmentsAsync start")
             val data = Base64.decodeBase64(dataResult?.data)
             val file = File(
                 "${
@@ -128,8 +125,6 @@ var filename = ""
             val fOut = FileOutputStream(file)
             fOut.write(data)
             fOut.close()
-
-            Log.w("asd", "saveAttachmentsAsync end")
         }
         return dataResult?.data
     }
@@ -145,7 +140,8 @@ var filename = ""
         date: String,
         subject: String,
         attachmentId: String,
-        messageId: String
+        messageId: String,
+        filename: String
     ) {
         UserMessagesModelClass.dataObject.add(
             UserMessagesModel(
@@ -153,7 +149,8 @@ var filename = ""
                 from,
                 subject,
                 attachmentId,
-                messageId
+                messageId,
+                filename
             )
         )
     }

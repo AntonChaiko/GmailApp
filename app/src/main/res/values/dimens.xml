@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="TextViewPadding">8dp</dimen>
+    <dimen name="LayoutMarginStart">76dp</dimen>
+    <dimen name="LayoutMarginEnd">32dp</dimen>
+    <dimen name="CardViewSize">100dp</dimen>
+    <dimen name="CardViewElevation">10dp</dimen>
+</resources>

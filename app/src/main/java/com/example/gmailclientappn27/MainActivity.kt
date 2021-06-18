@@ -8,4 +8,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
     }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        UserMessagesModelClass.dataObject.clear()
+        this.finish()
+    }
 }

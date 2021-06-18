@@ -1,6 +1,8 @@
 package com.example.gmailclientappn27.adapters
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -14,6 +16,9 @@ import android.widget.RemoteViewsService
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gmailclientappn27.R
 import com.example.gmailclientappn27.UserMessagesModelClass
@@ -73,10 +78,10 @@ class MessageFragmentAdapter(
                 if (currentMessage.attachmentId != "") {
                     holder.attachImageView?.visibility = View.VISIBLE
                     holder.attachImageView?.setOnClickListener {
-                        Toast.makeText(context, currentMessage.attachmentId, Toast.LENGTH_LONG)
-                            .show()
+//                        Toast.makeText(context, currentMessage.attachmentId, Toast.LENGTH_LONG)
+//                            .show()
                         CoroutineScope(Dispatchers.IO).launch {
-                            mMessagesFragmentViewModel.getData(service,currentMessage.messageId,currentMessage.attachmentId)
+                            mMessagesFragmentViewModel.getData(service,currentMessage.messageId,currentMessage.attachmentId,currentMessage.filename)
                         }
                     }
                 }
@@ -86,6 +91,14 @@ class MessageFragmentAdapter(
                 holder.dateTextView?.text = currentMessage?.date
                 holder.subjectTextView?.text = currentMessage?.subject
                 holder.fromTextView?.text = currentMessage?.form
+                if (currentMessage?.attachmentId != "") {
+                    holder.attachImageView?.visibility = View.VISIBLE
+                    holder.attachImageView?.setOnClickListener {
+                        Toast.makeText(context, "No internet connection =(", Toast.LENGTH_LONG)
+                            .show()
+
+                    }
+                }
             }
         }
     }
