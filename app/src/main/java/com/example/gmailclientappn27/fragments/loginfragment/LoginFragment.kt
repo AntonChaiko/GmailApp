@@ -44,10 +44,7 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>() {
         binding.signInButton.setOnClickListener {
             signIn()
         }
-        binding.loginButton.setOnClickListener {
-            saveSharedPrefs(binding.rememberSwitch.isChecked)
-            findNavController().navigate(R.id.action_loginFragment_to_messagesFragment)
-        }
+
     }
 
     override fun onStart() {
@@ -84,6 +81,9 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>() {
             .addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
+                    saveSharedPrefs(binding.rememberSwitch.isChecked)
+                    findNavController().navigate(R.id.action_loginFragment_to_messagesFragment)
+
                 } else {
                     Log.d("asd", task.exception?.message.toString())
                 }
