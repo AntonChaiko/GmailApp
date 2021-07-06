@@ -1,4 +1,4 @@
-package com.example.gmailclientappn27
+package com.example.gmailclientappn27.models
 
 data class UserMessagesModel(
     val date: String,
@@ -10,6 +10,3 @@ data class UserMessagesModel(
 
 )
 
-object UserMessagesModelClass {
-    var dataObject: MutableList<UserMessagesModel> = mutableListOf()
-}

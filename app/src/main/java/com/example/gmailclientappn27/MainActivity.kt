@@ -11,7 +11,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        UserMessagesModelClass.dataObject.clear()
         this.finish()
     }
 }

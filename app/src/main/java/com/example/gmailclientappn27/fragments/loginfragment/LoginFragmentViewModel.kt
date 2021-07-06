@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 
 
 class LoginFragmentViewModel : ViewModel() {
@@ -18,11 +16,6 @@ class LoginFragmentViewModel : ViewModel() {
             .build()
 
         return GoogleSignIn.getClient(fragmentActivity, gso)
-    }
-
-     fun firebaseAuthWithGoogle(idToken: String,mAuth: FirebaseAuth) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        mAuth.signInWithCredential(credential)
     }
 
 

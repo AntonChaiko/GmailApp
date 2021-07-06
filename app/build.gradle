@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.gmailclientappn27"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -37,8 +37,17 @@ android {
     }
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
-
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude("META-INF/*.kotlin_module")
     }
+
+
 }
 
 dependencies {
@@ -64,9 +73,10 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
     //google
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
-
     implementation group: 'com.google.api-client', name: 'google-api-client-android', version: '1.30.9'
     implementation 'com.google.apis:google-api-services-gmail:v1-rev20200203-1.30.9'
+    implementation 'com.google.api-client:google-api-client:1.31.5'
+    implementation 'com.google.apis:google-api-services-gmail:v1-rev83-1.23.0'
 
 
 
