@@ -13,7 +13,11 @@
         >
         <action
             android:id="@+id/action_loginFragment_to_messagesFragment"
-            app:destination="@id/messagesFragment"/>
+            app:destination="@id/messagesFragment"
+            app:enterAnim="@anim/to_left"
+            app:exitAnim="@anim/from_right"
+            app:popEnterAnim="@anim/to_left"
+            app:popExitAnim="@anim/from_right" />
     </fragment>
     <fragment
         android:id="@+id/messagesFragment"
@@ -23,6 +27,7 @@
         >
         <action
             android:id="@+id/action_messagesFragment_to_loginFragment"
-            app:destination="@id/loginFragment" />
+            app:destination="@id/loginFragment"
+            app:popExitAnim="@anim/from_right" />
     </fragment>
 </navigation>
